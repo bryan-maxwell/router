@@ -34,7 +34,7 @@ $r->match('hello-world', function() {
 *Example 1* - Respond to all requests
 
 ```php
-$r->match(function () {
+$r->match(function() {
     echo 'Everything';
 });
 ```
@@ -42,7 +42,7 @@ $r->match(function () {
 *Example 2* - Match parameters
 
 ```php
-$r->match('{controller}/{action}', function ($r, $m) {
+$r->match('{controller}/{action}', function($r, $m) {
     echo 'Controller ' . $m['controller'] . ' / Action: ' . $m['action'];
 });
 ```
