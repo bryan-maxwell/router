@@ -180,7 +180,7 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
     }
 
 
-    protected function relative(string $from, string $link): strin
+    protected function relative(string $from, string $link): string
     {
         $from = explode('/', $from);
         $link = explode('/', $link);
