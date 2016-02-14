@@ -1,0 +1,21 @@
+{
+   "name": "lemmon/router",
+   "description": "Lightweight standalone routing library for PHP",
+   "keywords": ["router", "routing", "sinatra", "boilerplate"],
+   "homepage": "https://github.com/lemmon/router",
+   "license": "MIT",
+   "authors": [
+      {
+         "name": "Jakub Pelák",
+         "role": "Creator/Developer"
+      }
+   ],
+   "require": {
+      "php": ">=7.0"
+   },
+   "autoload": {
+      "psr-4": {
+         "Lemmon\\Router\\": "src/Router/"
+      }
+   }
+}
