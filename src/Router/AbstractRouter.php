@@ -28,13 +28,13 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
 
     public function offsetExists($offset)
     {
-        return isset($this->_params[$offset]);
+        return is_int($offset) and isset($this->_params[$offset]);
     }
 
 
     public function offsetGet($offset)
     {
-        return $this->_params[$offset];
+        return self::offsetExists($offset) ? $this->_params[$offset] : FALSE;
     }
 
 
