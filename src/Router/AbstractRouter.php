@@ -165,7 +165,7 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
             }
         }
         //
-        return $link;
+        return str_replace('/./', '/', $link);
     }
 
 
