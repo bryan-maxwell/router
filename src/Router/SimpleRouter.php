@@ -16,7 +16,7 @@ class SimpleRouter extends AbstractRouter
         // masks
         $mask = (isset($args[0]) and is_array($args[0])) ? array_shift($args) : [];
         // match
-        if (!$pattern or $this->matchPattern($pattern, $mask, $matches)) {
+        if (!isset($pattern) or $this->matchPattern($pattern, $mask, $matches)) {
             if (isset($args[0]) and is_callable($args[0]) and FALSE !== ($res = $args[0]($this, $matches ?? []))) {
                 return $res;
             }
