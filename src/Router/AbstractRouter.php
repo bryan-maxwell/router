@@ -2,7 +2,7 @@
 
 namespace Lemmon\Router;
 
-abstract class AbstractRouter implements RouterInterface, \ArrayAccess
+abstract class AbstractRouter implements \ArrayAccess
 {
     private $_options = [];
     private $_root;
@@ -10,8 +10,7 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
     private $_path;
     private $_query;
     private $_params = [];
-    private $_definedLinks = [];
-    private $_definedClosures = [];
+    private $_routes = [];
 
 
     function __construct(array $options = [])
@@ -60,8 +59,8 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
 
     public function getHome(): string
     {
-        return isset($this->_definedLinks[':home'])
-            ? $this->to($this->_definedLinks[':home'])
+        return isset($this->_routes[':home'])
+            ? $this->to($this->_routes[':home'])
             : $this->getRoot(TRUE)
             ;
     }
@@ -79,6 +78,12 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
     }
 
 
+    public function define(string $name, $route)
+    {
+        $this->_routes[':' . $name] = $route;
+    }
+
+
     public function to($link, ...$args): string
     {
         // validate link
@@ -88,8 +93,8 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
                 case ':root': return $this->getRoot();
                 case ':home': return $this->getHome();
                 default:
-                    if (isset($this->_definedLinks[$link])) {
-                        $link = $this->_definedLinks[$link];
+                    if (isset($this->_routes[$link])) {
+                        $link = $this->_routes[$link];
                     } else {
                         trigger_error(sprintf('Route not defined (%s)', $link));
                         return '#';
@@ -101,7 +106,8 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
             return '%' . join(@$m['sep'] . '%', range($m['from'], @$m['to'] ?: count($args)));
         }, $link);
         // match link variables with params
-        $link = preg_replace_callback('#((?<!\\\)?<keep>@)?({((?<match>[\w\.]+)|%(?<arg>\d+))(=(?<default>\w+))?}|%(?<arg0>\d+))#', function($m) use ($args){
+        $link = ltrim(preg_replace_callback('#((?<!\\\)?<keep>@)?({((?<match>[\w\.]+)|%(?<arg>\d+))(:(?<pattern>[^:=}]+)(:(?<length>[\d,]+))?)?(=(?<default>\w+))?}|%(?<arg0>\d+))#', function($m) use ($args) {
+            static $matched;
             // argument
             $res = !empty($args) ? $args[(($i = (int)@$m['arg0'] or $i = (int)@$m['arg']) and isset($args[$i - 1])) ? $i - 1 : 0] : '';
             // match
@@ -111,23 +117,33 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
                 foreach ($_match as $_m) {
                     if (is_array($_res) and isset($_res[$_m])) {
                         $_res = $_res[$_m];
+                        $matched = TRUE;
                     } elseif (is_object($_res) and $_res instanceof \ArrayAccess and isset($_res[$_m])) {
                         $_res = $_res[$_m];
+                        $matched = TRUE;
                     } elseif (is_object($_res) and isset($_res->{$_m})) {
                         $_res = $_res->{$_m};
+                        $matched = TRUE;
                     } elseif (is_object($_res) and method_exists($_res, 'get' . $_m)) {
                         $_res = $_res->{'get' . $_m}();
+                        $matched = TRUE;
+                    } elseif (isset($this->{$_m})) {
+                        $_res = !$matched ? $this->{$_m} : '';
                     } else {
+                        // parameter not found
                         $_res = '';
                         break;
                     }
                 }
                 if (is_string($_res) or is_numeric($_res)) {
                     $res = strval($_res);
+                } elseif (is_bool($_res) and FALSE === $_res) {
+                    $res = '';
                 } elseif (is_object($_res) and method_exists($_res, '__toString')) {
                     $res = $_res->__toString();
                 } else {
-                    $res = '';
+                    // parameter found but not readable (Notice)
+                    $res = '*';
                 }
             }
             // res
@@ -136,22 +152,11 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
             }
             // default
             if (!empty($m['default']) and $m['default'] == $res) {
-                $res = NULL;
+                $res = FALSE;
             }
             //
-            return ((is_string($res) or is_int($res)) and !empty($res)) ? $res : (isset($m['keep']) ? $m['keep'] : '');
-        }, $link);
-        // paste current route params
-        if (FALSE !== strpos($link, '@')) {
-            $link = explode('/', $link);
-            foreach ($link as $i => $_param) {
-                if ($_param and '@' == $_param{0}) {
-                    $link[$i] = isset($this->_params[$i]) ? $this->_params[$i] : '';
-                }
-            }
-            $link = join('/', $link);
-            $link = str_replace('\\@', '@', $link);
-        }
+            return $res;
+        }, $link), '/');
         // root & base
         if ('' == $link or ('/' !== $link{0} and FALSE === strpos($link, '://'))) {
             if (FALSE !== $this->_root) {
@@ -165,7 +170,7 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
             }
         }
         //
-        return str_replace('/./', '/', $link);
+        return rtrim(str_replace('/./', '/', $link), '/');
     }
 
 
@@ -197,9 +202,30 @@ abstract class AbstractRouter implements RouterInterface, \ArrayAccess
     }
 
 
-    protected function matchPattern(string $pattern, array $mask = [], &$matches = [], &$defaults = [])
+    protected function matchParams(...$args)
     {
-        // match route
+        $res = [];
+        $res[] = (isset($args[0]) and is_array($args[0])) ? array_shift($args) : NULL;      // method
+        $res[] = (isset($args[0]) and is_string($args[0])) ? array_shift($args) : NULL;     // pattern
+        $res[] = (isset($args[0]) and is_array($args[0])) ? array_shift($args) : [];        // mask
+        $res[] = (isset($args[0]) and is_callable($args[0])) ? array_shift($args) : NULL;   // callback
+        $res[] = (isset($args[0]) and is_string($args[0])) ? array_shift($args) : NULL;     // name
+        return $res;
+    }
+
+
+    protected function matchPattern($method, $pattern, array $mask = [], &$matches = NULL, &$defaults = NULL)
+    {
+        $matches = [];
+        $defaults = [];
+        // match method
+        if (isset($method) and !in_array($_SERVER['REQUEST_METHOD'], $method)) {
+            return FALSE;
+        }
+        // match pattern
+        if (!isset($pattern)) {
+            return TRUE;
+        }
         $pattern = strtr($pattern, [
             ')!' => ')',
             ')'  => ')?',
