@@ -1,11 +1,14 @@
 <?php
 
-require_once __DIR__ . '/../../../autoload.php';
+require_once __DIR__ . '/../src/Router/AbstractRouter.php';
+require_once __DIR__ . '/../src/Router/Router.php';
+require_once __DIR__ . '/../../lib/vendor/autoload.php';
 
 Tracy\Debugger::enable(FALSE);
 
 $r = new Lemmon\Router\Router;
 
+/*
 $r->match('{action:signin|signup}', 'Auth');
 $r->match('logout', 'Auth#signout');
 $r->match('page(/{page:num:1,5=1})', 'Posts#page');
@@ -24,9 +27,18 @@ $r->match('*', function() {
 $r->match(function() {
     dump('== default ==');
 });
+*/
+$r->match('{controller=index}(/{action=index}(/{id:num=1}))', 'crud');
 $r->dispatch();
 
 echo '<ul>';
+echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'foo', 'action' => 'bar'])). '>' .$_. '</a></li>';
+echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index'])). '>' .$_. '</a></li>';
+echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'xoxo', 'action' => 'index'])). '>' .$_. '</a></li>';
+echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'index'])). '>' .$_. '</a></li>';
+echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'index', 'id' => 1])). '>' .$_. '</a></li>';
+echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'index', 'id' => 2])). '>' .$_. '</a></li>';
+echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'action'])). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->getRoot()). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to('controller')). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to('controller/read')). '>' .$_. '</a></li>';
@@ -48,13 +60,14 @@ echo '<ul>';
 #echo '<li><a href=' .($_ = $r->to(':Default', ['action' => 'update', 'id' => 33])). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to(':Default', ['action' => 'update', 'id' => FALSE])). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to(':Default', ['action' => 'update', 'id' => NULL])). '>' .$_. '</a></li>';
-echo '<li><a href=' .($_ = $r->to(':Default', ['action' => 'xo'])). '>' .$_. '</a></li>';
-echo '<li><a href=' .($_ = $r->to(':Default', ['controller' => 'xo'])). '>' .$_. '</a></li>';
-echo '<li><a href=' .($_ = $r->to(':Default', ['id' => 11])). '>' .$_. '</a></li>';
-echo '<li><a href=' .($_ = $r->to(':Default', ['id' => 1])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':Default', ['action' => 'xo'])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':Default', ['controller' => 'xo'])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':Default', ['id' => 11])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':Default', ['id' => 1])). '>' .$_. '</a></li>';
 echo '</ul>';
 
-#dump($r);
+/*
+dump($r);
 dump([
     $r->controller,
     $r->action,
@@ -62,5 +75,6 @@ dump([
     $r->page,
     $r->getName(),
 ]);
+*/
 
 die('n/a');

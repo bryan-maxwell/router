@@ -138,12 +138,12 @@ abstract class AbstractRouter implements \ArrayAccess
                 if (is_string($_res) or is_numeric($_res)) {
                     $res = strval($_res);
                 } elseif (is_bool($_res) and FALSE === $_res) {
-                    $res = '';
+                    $res = '{x}';
                 } elseif (is_object($_res) and method_exists($_res, '__toString')) {
                     $res = $_res->__toString();
                 } else {
                     // parameter found but not readable (Notice)
-                    $res = '*';
+                    $res = '{*}';
                 }
             }
             // res
@@ -152,25 +152,28 @@ abstract class AbstractRouter implements \ArrayAccess
             }
             // default
             if (!empty($m['default']) and $m['default'] == $res) {
-                $res = FALSE;
+                $res = "{=$res}";
             }
             //
             return $res;
         }, $link), '/');
+        // trim link
+        $link = preg_replace('#(\W|{.[^}]+})+$#', '', $link);
+        $link = preg_replace('#{=([^}]+)}#', '$1', $link);
         // root & base
         if ('' == $link or ('/' !== $link{0} and FALSE === strpos($link, '://'))) {
             if (FALSE !== $this->_root) {
                 if ('./' == substr($link, 0, 2)) {
                     $link = $this->_root . $this->normalize(substr($link, 2));
                 } else {
-                    $link = $this->_root . $this->_base . $this->normalize($link);
+                    $link = ($link ? $this->_root . $this->_base . $this->normalize($link) : $this->getRoot(TRUE));
                 }
             } else {
                 $link = $this->_base . ($this->relative($this->_path, $link));
             }
         }
         //
-        return rtrim(str_replace('/./', '/', $link), '/');
+        return str_replace('/./', '/', $link);
     }
 
 
