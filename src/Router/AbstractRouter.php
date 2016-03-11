@@ -66,6 +66,11 @@ abstract class AbstractRouter implements \ArrayAccess
     }
 
 
+    public function getSelf(...$args): string
+    {
+    }
+
+
     public function getBase(): string
     {
         return $this->_base;

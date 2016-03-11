@@ -9,9 +9,6 @@ Tracy\Debugger::enable(FALSE);
 $r = new Lemmon\Router\Router;
 
 /*
-$r->match('{action:signin|signup}', 'Auth');
-$r->match('logout', 'Auth#signout');
-$r->match('page(/{page:num:1,5=1})', 'Posts#page');
 $r->match(['GET', 'PUT'], '', function() {
     dump('== empty ==');
 });
@@ -28,7 +25,10 @@ $r->match(function() {
     dump('== default ==');
 });
 */
-$r->match('{controller=index}(/{action=index}(/{id:num=1}))', 'crud');
+#$r->match('{action:signin|signup}', 'Auth#');
+#$r->match('logout', 'Auth#signout');
+#$r->match('{controller:page}(/{page:num:1,5=1})', 'Posts#');
+$r->match('({controller=index}(/{action=index}(/{id:num=1})))', 'crud');
 $r->dispatch();
 
 echo '<ul>';
@@ -39,6 +39,10 @@ echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' =>
 echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'index', 'id' => 1])). '>' .$_. '</a></li>';
 echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'index', 'id' => 2])). '>' .$_. '</a></li>';
 echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'action'])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':Auth#')). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':Auth#', ['action' => 'signin'])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':Auth#', ['action' => 'signup'])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':Auth#signout')). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->getRoot()). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to('controller')). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to('controller/read')). '>' .$_. '</a></li>';
@@ -48,7 +52,6 @@ echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' =>
 #echo '<li><a href=' .($_ = $r->to('signin')). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to('signup')). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to('logout')). '>' .$_. '</a></li>';
-#echo '<li><a href=' .($_ = $r->to(':Auth', ['action' => 'signin'])). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to(':Auth#signout')). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to(':Posts#page', ['page' => 1])). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to(':Posts#page', ['page' => 2])). '>' .$_. '</a></li>';
@@ -66,7 +69,7 @@ echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' =>
 #echo '<li><a href=' .($_ = $r->to(':Default', ['id' => 1])). '>' .$_. '</a></li>';
 echo '</ul>';
 
-/*
+/**/
 dump($r);
 dump([
     $r->controller,
@@ -75,6 +78,6 @@ dump([
     $r->page,
     $r->getName(),
 ]);
-*/
+/**/
 
 die('n/a');
