@@ -28,6 +28,9 @@ class Router extends AbstractRouter
         foreach ($this->_routes as $route) {
             list($method, $pattern, $mask, $callback, $name) = $route;
             if ($this->matchPattern($method, $pattern, $mask, $matches, $defaults)) {
+                $this->_matches = $matches;
+                $this->_defaults = $defaults;
+                $this->_name = $name;
                 if ($callback) {
                     $arg = [];
                     $ref = new \ReflectionFunction($callback);
@@ -35,12 +38,12 @@ class Router extends AbstractRouter
                         $arg[] = $matches[$x->getName()] ?? $defaults[$x->getName()] ?? NULL;
                     }
                     if (FALSE === $callback($this, ...$arg)) {
+                        $this->_matches = NULL;
+                        $this->_defaults = NULL;
+                        $this->_name = NULL;
                         return;
                     }
                 }
-                $this->_matches = $matches;
-                $this->_defaults = $defaults;
-                $this->_name = $name;
                 return TRUE;
             }
         }

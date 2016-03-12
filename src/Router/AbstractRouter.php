@@ -68,6 +68,7 @@ abstract class AbstractRouter implements \ArrayAccess
 
     public function getSelf(...$args): string
     {
+        return '';
     }
 
 
@@ -83,9 +84,29 @@ abstract class AbstractRouter implements \ArrayAccess
     }
 
 
-    public function define(string $name, $route)
+    public function define(string $name, $link, $args = NULL)
     {
-        $this->_routes[':' . $name] = $route;
+        if ($args) {
+            $link = $this->_getDefined($link);
+            foreach ($args as $_key => $_val) {
+                $link = preg_replace('#{' .$_key. '(:[^=}]+)?(=[^}]+)?}#', $_val, $link);
+            }
+        }
+        $this->_routes[':' . $name] = $link;
+    }
+
+
+    private function _getDefined($link)
+    {
+        while (':' == $link{0}) {
+            if (isset($this->_routes[$link])) {
+                $link = $this->_routes[$link];
+            } else {
+                trigger_error(sprintf('Route not defined (%s)', $link));
+                return '#';
+            }
+        }
+        return $link;
     }
 
 
@@ -111,7 +132,7 @@ abstract class AbstractRouter implements \ArrayAccess
             return '%' . join(@$m['sep'] . '%', range($m['from'], @$m['to'] ?: count($args)));
         }, $link);
         // match link variables with params
-        $link = ltrim(preg_replace_callback('#((?<!\\\)?<keep>@)?({((?<match>[\w\.]+)|%(?<arg>\d+))(:(?<pattern>[^:=}]+)(:(?<length>[\d,]+))?)?(=(?<default>\w+))?}|%(?<arg0>\d+))#', function($m) use ($args) {
+        $link = ltrim(preg_replace_callback('#((?<!\\\)?<keep>@)?({((?<match>[\w\.]+)|%(?<arg>\d+))(:(?<pattern>[^:=}]+)(:(?<length>[\d,]+))?)?(=(?<default>[^}]+))?}|%(?<arg0>\d+))#', function($m) use ($args) {
             static $matched;
             // argument
             $res = !empty($args) ? $args[(($i = (int)@$m['arg0'] or $i = (int)@$m['arg']) and isset($args[$i - 1])) ? $i - 1 : 0] : '';
@@ -132,6 +153,8 @@ abstract class AbstractRouter implements \ArrayAccess
                     } elseif (is_object($_res) and method_exists($_res, 'get' . $_m)) {
                         $_res = $_res->{'get' . $_m}();
                         $matched = TRUE;
+                    } elseif (isset($m['default'])) {
+                        $_res = "{={$m['default']}}";
                     } elseif (isset($this->{$_m})) {
                         $_res = !$matched ? $this->{$_m} : '';
                     } else {

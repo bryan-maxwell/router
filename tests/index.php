@@ -2,7 +2,8 @@
 
 require_once __DIR__ . '/../src/Router/AbstractRouter.php';
 require_once __DIR__ . '/../src/Router/Router.php';
-require_once __DIR__ . '/../../lib/vendor/autoload.php';
+@include __DIR__ . '/../../lib/vendor/autoload.php';
+@include __DIR__ . '/../../../autoload.php';
 
 Tracy\Debugger::enable(FALSE);
 
@@ -28,17 +29,20 @@ $r->match(function() {
 #$r->match('{action:signin|signup}', 'Auth#');
 #$r->match('logout', 'Auth#signout');
 #$r->match('{controller:page}(/{page:num:1,5=1})', 'Posts#');
-$r->match('({controller=index}(/{action=index}(/{id:num=1})))', 'crud');
+#$r->match('({controller=index}(/{action=index}(/{id:num=1})))', 'crud');
+$r->match('({link=index})', function(){}, 'link');
 $r->dispatch();
 
 echo '<ul>';
-echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'foo', 'action' => 'bar'])). '>' .$_. '</a></li>';
-echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index'])). '>' .$_. '</a></li>';
-echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'xoxo', 'action' => 'index'])). '>' .$_. '</a></li>';
-echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'index'])). '>' .$_. '</a></li>';
-echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'index', 'id' => 1])). '>' .$_. '</a></li>';
-echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'index', 'id' => 2])). '>' .$_. '</a></li>';
-echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'action'])). '>' .$_. '</a></li>';
+echo '<li><a href=' .($_ = $r->to(':link', ['link' => 'index'])). '>' .$_. '</a></li>';
+echo '<li><a href=' .($_ = $r->to(':link', ['link' => 'subpage'])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'foo', 'action' => 'bar'])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index'])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'xoxo', 'action' => 'index'])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'index'])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'index', 'id' => 1])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'index', 'id' => 2])). '>' .$_. '</a></li>';
+#echo '<li><a href=' .($_ = $r->to(':crud', ['controller' => 'index', 'action' => 'action'])). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to(':Auth#')). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to(':Auth#', ['action' => 'signin'])). '>' .$_. '</a></li>';
 #echo '<li><a href=' .($_ = $r->to(':Auth#', ['action' => 'signup'])). '>' .$_. '</a></li>';
@@ -76,6 +80,7 @@ dump([
     $r->action,
     $r->id,
     $r->page,
+    $r->link,
     $r->getName(),
 ]);
 /**/
