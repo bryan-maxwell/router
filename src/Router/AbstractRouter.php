@@ -243,6 +243,7 @@ abstract class AbstractRouter implements \ArrayAccess
         $pattern = preg_replace_callback('#{(?<name>(\w+))(:(?<pattern>.+)(:(?<length>.+))?)?(=(?<default>.+))?}#U', function($m) use ($mask, &$defaults){
             if (@$m['pattern']) {
                 switch ($m['pattern']) {
+                    case 'any':      $_pattern = '.'; break;
                     case 'num':      $_pattern = '\d'; break;
                     case 'alpha':    $_pattern = '[a-z\-]'; break;
                     case 'alphanum': $_pattern = '[\w\-]'; break;
