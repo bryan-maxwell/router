@@ -8,6 +8,7 @@ class Router extends AbstractRouter
     private $_matches;
     private $_defaults;
     private $_name;
+    private $_self;
 
 
     function match(...$args)
@@ -31,6 +32,7 @@ class Router extends AbstractRouter
                 $this->_matches = $matches;
                 $this->_defaults = $defaults;
                 $this->_name = $name;
+                $this->_self = $route[1];
                 if ($callback) {
                     $arg = [];
                     $ref = new \ReflectionFunction($callback);
@@ -41,6 +43,7 @@ class Router extends AbstractRouter
                         $this->_matches = NULL;
                         $this->_defaults = NULL;
                         $this->_name = NULL;
+                        $this->_self = NULL;
                         return;
                     }
                 }
@@ -62,8 +65,14 @@ class Router extends AbstractRouter
     }
 
 
-    function getName()
+    public function getName()
     {
         return $this->_name;
+    }
+
+
+    public function getSelf(...$args): string
+    {
+        return $this->to($this->_self, ...$args);
     }
 }

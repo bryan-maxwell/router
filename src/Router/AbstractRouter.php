@@ -68,7 +68,7 @@ abstract class AbstractRouter implements \ArrayAccess
 
     public function getSelf(...$args): string
     {
-        return '';
+        return $this->to($this->_path);
     }
 
 
@@ -153,10 +153,10 @@ abstract class AbstractRouter implements \ArrayAccess
                     } elseif (is_object($_res) and method_exists($_res, 'get' . $_m)) {
                         $_res = $_res->{'get' . $_m}();
                         $matched = TRUE;
-                    } elseif (isset($m['default'])) {
-                        $_res = "{={$m['default']}}";
                     } elseif (isset($this->{$_m})) {
                         $_res = !$matched ? $this->{$_m} : '';
+                    } elseif (isset($m['default'])) {
+                        $_res = "{={$m['default']}}";
                     } else {
                         // parameter not found
                         $_res = '';
@@ -185,9 +185,11 @@ abstract class AbstractRouter implements \ArrayAccess
             //
             return $res;
         }, $link), '/');
+        
         // trim link
+        $link = strtr($link, ['(' => '', ')' => '']); // remove parenthesis
         $link = preg_replace('#(\W|{.[^}]+})+$#', '', $link);
-        $link = preg_replace('#{=([^}]+)}#', '$1', $link);
+        $link = preg_replace('#{=([^}]+)}#', '$1', $link); // restore defaults
         // root & base
         if ('' == $link or ('/' !== $link{0} and FALSE === strpos($link, '://'))) {
             if (FALSE !== $this->_root) {
