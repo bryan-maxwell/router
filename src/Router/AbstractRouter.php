@@ -187,8 +187,9 @@ abstract class AbstractRouter implements \ArrayAccess
         }, $link), '/');
         
         // trim link
+        $link = preg_replace('#\([^{}\)]*{=[^}]+}[^{}\)]*\)/*$#', '', $link); // remove `(...{=default}...)$` from end of link
         $link = strtr($link, ['(' => '', ')' => '']); // remove parenthesis
-        $link = preg_replace('#(\W|{.[^}]+})+$#', '', $link);
+        $link = preg_replace('#(\W|{.[^}]+})+$#', '', $link); // remove defaults from end of route
         $link = preg_replace('#{=([^}]+)}#', '$1', $link); // restore defaults
         // root & base
         if ('' == $link or ('/' !== $link{0} and FALSE === strpos($link, '://'))) {
