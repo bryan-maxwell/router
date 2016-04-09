@@ -17,7 +17,6 @@ class Router extends AbstractRouter
         if ($route[4] and $route[1]) {
             $def = $route[1];
             $def = preg_replace('#\(\?<\w+>#', '', $def);
-            $def = strtr($def, ['(' => '', ')!' => '', ')' => '']);
             $this->define($route[4], $def);
         }
         $this->_routes[] = $route;
@@ -73,6 +72,9 @@ class Router extends AbstractRouter
 
     public function getSelf(...$args): string
     {
-        return $this->to($this->_self, ...$args);
+        return $this->_self
+            ? $this->to($this->_self, ...$args)
+            : parent::getSelf(...$args)
+            ;
     }
 }
