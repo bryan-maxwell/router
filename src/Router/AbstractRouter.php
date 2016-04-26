@@ -5,6 +5,7 @@ namespace Lemmon\Router;
 abstract class AbstractRouter implements \ArrayAccess
 {
     private $_options = [];
+    private $_host;
     private $_root;
     private $_base;
     private $_path;
@@ -17,6 +18,7 @@ abstract class AbstractRouter implements \ArrayAccess
     {
         $o = array_replace($this->_options, $options);
         preg_match('#^(.*/)([^/]+\.php)$#', $_SERVER['SCRIPT_NAME'], $m);
+        $this->_host = $o['host'] ?? $_SERVER['HTTP_HOST'] ?? NULL;
         $this->_root = $o['root'] ?? $m[1];
         $this->_base = $o['base'] ?? $m[2] . '/';
         $this->_path = $o['path'] ?? substr(@$_SERVER['PATH_INFO'], 1);
@@ -39,6 +41,12 @@ abstract class AbstractRouter implements \ArrayAccess
 
     public function offsetSet($offset, $value) { return FALSE; }
     public function offsetUnset($offset) { return FALSE; }
+
+
+    public function getHost()
+    {
+        return $this->_host;
+    }
 
 
     public function getParams()
